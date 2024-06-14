@@ -30,7 +30,7 @@ python = "^3.9"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.2"
-torch = "^2.2"
+torch = "^2.3"
 numpy = "^1.26.2"
 
 [tool.pytest]
