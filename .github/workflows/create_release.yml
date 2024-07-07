@@ -65,9 +65,7 @@ jobs:
 
   publish-to-testpypi: # To test the upload path to testpypi, build the wheel with a version tag including the current date
     name: Publish to TestPyPI    
-    needs:
-      - build
-    if: (github.ref == 'refs/heads/master') || contains( github.event.pull_request.labels.*.name, 'testpypi')
+    if: (github.event_name == 'schedule')  || contains( github.event.pull_request.labels.*.name, 'testpypi')
    
     runs-on: ubuntu-latest
 
