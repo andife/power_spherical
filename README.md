@@ -26,7 +26,7 @@ This library contains a Pytorch implementation of the Power Spherical distributi
 Optional dependency for [examples](https://github.com/andife/power_spherical/blob/master/example.ipynb) needed for plotting and numerical checks (again older version could work but they were not tested):
 * **numpy>=1.18.1**: https://numpy.org
 * **matplotlib>=3.1.1**: https://matplotlib.org
-* **quadpy>=0.14.11**: https://pypi.org/project/quadpy (a payed license is needed)
+* **quadpy>=0.14.11**: https://pypi.org/project/quadpy (a paid license is needed)
 
 ## Installation
 
