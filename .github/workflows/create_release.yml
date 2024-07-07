@@ -89,9 +89,12 @@ jobs:
       run: |
         curl -sSL https://install.python-poetry.org | python3 - 
         poetry install
-        todays_date = datetime.date.today().strftime("%Y%m%d")
+        todays_date = $(date +"%Y%m%d")
+        echo $(todays_date)
         currversion=$(poetry version -s)
-        currversion += ".dev" + todays_date
+        echo $(currversion)
+        currversion = currversion + ".dev" + todays_date
+        echo $(currversion)
         poetry version currversion
         poetry build
         
