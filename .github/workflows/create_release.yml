@@ -67,7 +67,7 @@ jobs:
     name: Publish to TestPyPI    
     needs:
       - build
-    if: (github.ref == 'refs/heads/master') || ${{ github.event.label.name == 'testpypi' }}
+    if: (github.ref == 'refs/heads/master') || contains( github.event.pull_request.labels.*.name, 'testpypi')
    
     runs-on: ubuntu-latest
 
