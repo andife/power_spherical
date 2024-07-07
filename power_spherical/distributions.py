@@ -15,9 +15,7 @@ class _TTransform(torch.distributions.Transform):
     domain = torch.distributions.constraints.real
     codomain = torch.distributions.constraints.real
     
-    def _call(self, x):
-        #t = x[..., 0].unsqueeze(-1)
-        #v = x[..., 1:]
+    def _call(self, x):        
         lastdim = x.size( )[-1]
         t = x[..., 0].unsqueeze(-1)
         v = x[..., 1:lastdim]
@@ -74,10 +72,6 @@ class HypersphericalUniform(torch.distributions.Distribution):
         self.device, self.dtype = device, dtype
 
     def rsample(self, sample_shape=()):
-        #v = torch.empty(
-        #    sample_shape + (self.dim,), dtype=self.dtype
-        #).normal_()
-        #v = torch.empty((self.dim,), dtype=self.dtype).normal_()
         v = torch.empty(sample_shape + (self.dim,), device=self.device, dtype=self.dtype).normal_()
         vnorm = LA.norm(v, dim=-1, keepdim=True)
         return v / (vnorm + _EPS)
