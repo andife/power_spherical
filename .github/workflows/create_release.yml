@@ -93,7 +93,7 @@ jobs:
         echo $todays_date
         currversion=$(poetry version -s)
         echo $currversion
-        currversion=$($currversion + ".dev" + $todays_date)
+        currversion=$currversion + ".dev" + $todays_date
         echo $currversion
         poetry version $currversion
         poetry build
