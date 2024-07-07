@@ -93,10 +93,11 @@ jobs:
         echo $(todays_date)
         currversion=$(poetry version -s)
         echo $(currversion)
-        currversion = currversion + ".dev" + todays_date
+        currversion = currversion + ".dev" + $(todays_date)
         echo $(currversion)
         poetry version currversion
         poetry build
+      shell: bash
         
     - name: Publish distribution to TestPyPI
       uses: pypa/gh-action-pypi-publish@release/v1
