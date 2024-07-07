@@ -14,8 +14,10 @@ updates:
     # default location of `.github/workflows`
     directory: "  /"
     schedule:
-      interval: "monthly"
+      interval: "daily"
     open-pull-requests-limit: 10
     labels:
       - "dependencies"
       - "github_actions"
+
+

@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: MIT
 
-name: Publish Python distribution to TestPyPI and PyPI
+name: Pipeline including publishing
 
 on: 
   schedule:
@@ -28,21 +28,34 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-version: "3.x"
+        python-version: "3.10"
     - name: Install Poetry / Build Package
       run: |
         curl -sSL https://install.python-poetry.org | python3 - 
         poetry install
         poetry build
 
-    - name: Test with pytest
+    - name: pytest (pytorch stable)
+      continue-on-error: true  # TODO change to xfail?
       run: poetry run pytest -ra
+
+    - name: pytest (pytorch nightly)
+      # Sometimes errors like that "Because no versions of torchvision match >0.20.0.dev20240706+cpu,<0.21.0
+      # and torchvision (0.20.0.dev20240706+cpu) depends on torch (2.5.0.dev20240706), torchvision (>=0.20.0.dev20240706+cpu,<0.21.0) requires torch (2.5.0.dev20240706).
+      # So, because power-spherical depends on both torch (>=2.5.0.dev20240707+cpu,<3.0.0) and torchvision (^0.20.0.dev20240706+cpu), version solving failed."
+      continue-on-error: true 
+      run: |
+        poetry add onnxscript
+        poetry source add --priority explicit pytorch https://download.pytorch.org/whl/nightly/cpu
+        poetry add --source pytorch torch torchvision        
+        poetry run pytest -ravvv
     
     - name: Store the distribution packages
       uses: actions/upload-artifact@v4
       with:
         name: python-package-distributions
         path: dist/
+
     # Generate hashes used for provenance.
     - name: generate hash
       id: hash
@@ -50,11 +63,10 @@ jobs:
     - name: Print variable
       run: echo "Hash $GITHUB_OUTPUT"    
 
-  publish-to-testpypi:
+  publish-to-testpypi: # To test the upload path to testpypi, build the wheel with a version tag including the current date
     name: Publish to TestPyPI    
-    needs:
-      - build
-    if: (github.ref == 'refs/heads/master') && (github.event_name == 'schedule')
+    if: (github.event_name == 'schedule')  || contains( github.event.pull_request.labels.*.name, 'testpypi')
+   
     runs-on: ubuntu-latest
 
     environment:
@@ -65,12 +77,27 @@ jobs:
       id-token: write  # IMPORTANT: mandatory for trusted publishing
 
     steps:
-    - name: Download all the dists
-      uses: actions/download-artifact@v4
+
+    - uses: actions/checkout@v4
+    - name: Set up Python
+      uses: actions/setup-python@v5
       with:
-        name: python-package-distributions
-        path: dist/
-    - name: Publish distribution to PyPI
+        python-version: "3.10"
+    - name: Install Poetry / Build Package
+      run: |
+        curl -sSL https://install.python-poetry.org | python3 - 
+        poetry install
+        todays_date=$(date +"%Y%m%d%H%M%S")
+        echo $todays_date
+        currversion=$(poetry version -s)
+        echo $currversion
+        currversion=${currversion}.dev${todays_date}
+        echo $currversion
+        poetry version $currversion
+        poetry build
+      shell: bash
+        
+    - name: Publish distribution to TestPyPI
       uses: pypa/gh-action-pypi-publish@release/v1
       with:
         repository-url: https://test.pypi.org/legacy/
@@ -103,12 +130,13 @@ jobs:
     name: Generate SLSA provenance data
     needs: [build]
     permissions:
-      actions: read
-      id-token: write
-      contents: write  # https://github.com/slsa-framework/slsa-github-generator/issues/2044 :(
+      actions: read # Needed for detection of GitHub Actions environment.
+      id-token: write # Needed for provenance signing and ID
+      contents: write  # Needed for release uploads, https://github.com/slsa-framework/slsa-github-generator/issues/2044 :( 
     uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v2.0.0
     with:
       base64-subjects: '${{ needs.build.outputs.hash }}'
+      # Upload provenance to a new release
       upload-assets: true      
 
 
@@ -137,13 +165,13 @@ jobs:
           ./dist/*.tar.gz
           ./dist/*.whl
 
-    - name: Rename files # to mach new file extension https://github.com/sigstore/sigstore-python/blob/main/CHANGELOG.md#changed
+    - name: Rename files # to match new file extension https://github.com/sigstore/sigstore-python/blob/main/CHANGELOG.md#changed
       run: |
-        sudo apt-get install mmv 
+        sudo apt install mmv 
         mmv "./dist/*.sigstore" ./dist/#1.sigstore.json
   
     # - name: Create GitHub Release
-    #   release is created by the ui.
+    #   release is created by the UI
     - name: Upload artifact signatures to GitHub Release
       if: startsWith(github.ref, 'refs/tags/')  # only publish to PyPI on tag pushes
       env:
