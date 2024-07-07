@@ -59,11 +59,12 @@ jobs:
     - name: Print variable
       run: echo "Hash $GITHUB_OUTPUT"    
 
-  publish-to-testpypi:
+  publish-to-testpypi: # To test the upload path to testpypi, build
     name: Publish to TestPyPI    
     needs:
       - build
-    if: (github.ref == 'refs/heads/master') && (github.event_name == 'schedule')
+    if: (github.ref == 'refs/heads/master') && (github.event_name == 'schedule') #|| github.event.label.name == 'label_name' )
+   
     runs-on: ubuntu-latest
 
     environment:
@@ -74,12 +75,23 @@ jobs:
       id-token: write  # IMPORTANT: mandatory for trusted publishing
 
     steps:
-    - name: Download all the dists
-      uses: actions/download-artifact@v4
+
+    - uses: actions/checkout@v4
+    - name: Set up Python
+      uses: actions/setup-python@v5
       with:
-        name: python-package-distributions
-        path: dist/
-    - name: Publish distribution to PyPI
+        python-version: "3.10"
+    - name: Install Poetry / Build Package
+      run: |
+        curl -sSL https://install.python-poetry.org | python3 - 
+        poetry install
+        todays_date = datetime.date.today().strftime("%Y%m%d")
+        currversion=$(poetry version -s)
+        currversion += ".dev" + todays_date
+        poetry version currversion
+        poetry build
+        
+    - name: Publish distribution to TestPyPI
       uses: pypa/gh-action-pypi-publish@release/v1
       with:
         repository-url: https://test.pypi.org/legacy/
