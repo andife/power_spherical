@@ -89,7 +89,7 @@ jobs:
       run: |
         curl -sSL https://install.python-poetry.org | python3 - 
         poetry install
-        todays_date=$(date +"%Y%m%d")
+        todays_date=$(date +"%Y%m%d%H%M%S")
         echo $todays_date
         currversion=$(poetry version -s)
         echo $currversion
