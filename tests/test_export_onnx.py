@@ -96,7 +96,7 @@ def test_dynamo_export_power_githubexample_onnx_dynamic_shapes(tmp_path):
     )
     onnx_program.save(str(tmp_path) + os.sep + "powerspherical_dyn.onnx")
 
-#@pytest.mark.xfail(reason="not supported feature of ONNX")
+@pytest.mark.xfail(reason="not supported feature of ONNX")
 def test_dynamo_export_power_spherical():
     class Model(torch.nn.Module):
         def __init__(self):
