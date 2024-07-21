@@ -97,7 +97,7 @@ Conference on Machine Learning, INNF+.
 BibTeX format:
 ```
 @article{decao2020power,
-  title={The Power Spherical distrbution},
+  title={The Power Spherical distribution},
   author={
     De Cao, Nicola and
     Aziz, Wilker},
